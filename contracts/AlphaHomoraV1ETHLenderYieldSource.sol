@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
-/// @title A title that should describe the contract/interface
-/// @dev Explain to a developer any extra details
-///  https://alphafinancelab.gitbook.io/alpha-homora-developer-doc/become-to-the-lender-of-alpha-homora-v1
-///  https://alphafinancelab.gitbook.io/alpha-finance-lab/alpha-products/alpha-homora
+/// @title Custom yield source intergration Alpha Homora v1 ETHLender
+/// @dev Alpha Homora source code / doc
+/// https://alphafinancelab.gitbook.io/alpha-homora/protocol-users#eth-lenders
+/// https://alphafinancelab.gitbook.io/alpha-finance-lab/alpha-products/alpha-homora
 pragma solidity >=0.7.0 <0.8.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./alpha-homora-v1/IBank.sol";
 import "./interface/IYieldSource.sol";
-import "./interface/IWETH.sol";
+import "./interface/IWETH9.sol";
 
 contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     using SafeMath for uint256;
@@ -53,7 +53,8 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         // Deposit ETH and receive ibETH
         bank.deposit{ value: address(this).balance }();
 
-        uint256 balanceAfter = bank.balanceOf(address(this)); // ibETH balance after
+        // ibETH balance after
+        uint256 balanceAfter = bank.balanceOf(address(this)); 
         uint256 balanceDiff = balanceAfter.sub(balanceBefore);
         balances[to] = balances[to].add(balanceDiff);
     }
