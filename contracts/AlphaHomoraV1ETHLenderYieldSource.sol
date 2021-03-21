@@ -8,7 +8,7 @@ pragma solidity >=0.7.0 <0.8.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./alpha-homora-v1/IBank.sol";
 import "./interface/IYieldSource.sol";
-import "./interface/IWETH9.sol";
+import "./interface/IWETH.sol";
 
 contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     using SafeMath for uint256;

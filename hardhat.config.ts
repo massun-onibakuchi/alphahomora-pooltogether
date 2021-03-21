@@ -3,6 +3,7 @@ import { task, HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
+import 'hardhat-deploy';
 import "hardhat-etherscan-abi";
 
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
@@ -59,24 +60,6 @@ const config: HardhatUserConfig = {
       {
         version: "0.7.6",
         settings: {
-          "outputSelection": {
-            "*": {
-              "*": [
-                "evm.bytecode.object",
-                "evm.deployedBytecode.object",
-                "abi",
-                "evm.bytecode.sourceMap",
-                "evm.deployedBytecode.sourceMap",
-                "metadata"
-              ],
-              // "": [
-              //   "ast" // Enable the AST output of every single file.
-              // ]
-            },
-            "def": {
-              "*": ["evm.bytecode.object"]
-            }
-          },
           optimizer: {
             enabled: true,
             runs: 200
