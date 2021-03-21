@@ -19,9 +19,9 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     ///@dev ibETH token balances
     mapping(address => uint256) public balances;
 
-    constructor(IBank _bank, IWETH _WETH) {
-        bank = _bank;
-        WETH = _WETH;
+    constructor(address _bankAddr, address _WETHAddr) {
+        bank = IBank(_bankAddr);
+        WETH = IWETH(_WETHAddr);
     }
 
     function depositToken() external view override returns (address) {
@@ -54,7 +54,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         bank.deposit{ value: address(this).balance }();
 
         // ibETH balance after
-        uint256 balanceAfter = bank.balanceOf(address(this)); 
+        uint256 balanceAfter = bank.balanceOf(address(this));
         uint256 balanceDiff = balanceAfter.sub(balanceBefore);
         balances[to] = balances[to].add(balanceDiff);
     }
