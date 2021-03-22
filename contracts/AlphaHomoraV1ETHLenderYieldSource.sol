@@ -19,6 +19,10 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     ///@dev ibETH token balances
     mapping(address => uint256) public balances;
 
+    receive() external payable {
+        assert(msg.sender == address(WETH)); // only accept ETH via fallback from the WETH contract
+    }
+
     constructor(address _bankAddr, address _WETHAddr) {
         bank = IBank(_bankAddr);
         WETH = IWETH(_WETHAddr);

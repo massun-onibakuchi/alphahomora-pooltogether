@@ -14,15 +14,17 @@ async function getEvents(contract, tx) {
     return receipt.logs.reduce((parsedEvents, log) => {
         try {
             parsedEvents.push(contract.interface.parseLog(log));
-        } catch (e) {}
+        } catch (e) {
+            console.log("e :>> ", e);
+        }
         return parsedEvents;
     }, []);
 }
 
 // eslint-disable-next-line no-undef
-describe("SushiYieldSource", function () {
-    let sushi;
-    let sushiDecimals;
+describe("AlphaHomoraV1ETHLenderYieldSource", function () {
+    let weth;
+    let wethDecimals;
     let poolWithMultipleWinnersBuilder;
     let factory;
     let prizePool;
@@ -30,8 +32,9 @@ describe("SushiYieldSource", function () {
     let wallet;
     let wallets;
     let yieldSource;
-    let sushiBar;
+    let alphaHomora;
     let exchangeWallet;
+    let rngServiceMock;
     // eslint-disable-next-line no-undef
     before(async function () {
         const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
@@ -40,13 +43,13 @@ describe("SushiYieldSource", function () {
             params: [exchangeWalletAddress],
         });
         exchangeWallet = await waffle.provider.getSigner(exchangeWalletAddress);
-        sushi = await ethers.getVerifiedContractAt("0x6B3595068778DD592e39A122f4f5a5cF09C90fE2", exchangeWallet);
-        sushiBar = await ethers.getVerifiedContractAt("0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272");
+        weth = await ethers.getVerifiedContractAt("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", exchangeWallet);
+        alphaHomora = await ethers.getVerifiedContractAt("0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A");
         poolWithMultipleWinnersBuilder = await ethers.getVerifiedContractAt(
             "0xdA64816F76BEA59cde1ecbe5A094F6c56A7F9770",
         );
-        sushiDecimals = await sushi.decimals();
-        factory = await ethers.getContractFactory("SushiYieldSource");
+        wethDecimals = await weth.decimals();
+        factory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource");
     });
 
     // eslint-disable-next-line no-undef
@@ -55,7 +58,7 @@ describe("SushiYieldSource", function () {
         wallet = wallets[0];
         // setup
 
-        yieldSource = await factory.deploy({ gasLimit: 9500000 });
+        yieldSource = await factory.deploy(alphaHomora.address, weth.address, { gasLimit: 9500000 });
         const yieldSourcePrizePoolConfig = {
             yieldSource: yieldSource.address,
             maxExitFeeMantissa: toWei("0.5"),
@@ -70,10 +73,10 @@ describe("SushiYieldSource", function () {
             rngService: rngServiceMock.address,
             prizePeriodStart: 0,
             prizePeriodSeconds: 100,
-            ticketName: "sushipass",
-            ticketSymbol: "suship",
-            sponsorshipName: "sushisponso",
-            sponsorshipSymbol: "sushisp",
+            ticketName: "bankpass",
+            ticketSymbol: "bankp",
+            sponsorshipName: "banksponso",
+            sponsorshipSymbol: "banksp",
             ticketCreditLimitMantissa: toWei("0.1"),
             ticketCreditRateMantissa: toWei("0.1"),
             externalERC20Awards: [],
@@ -95,43 +98,47 @@ describe("SushiYieldSource", function () {
             wallet,
         );
 
-        // get some sushi
-        await sushi.transfer(wallet.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(sushiDecimals)));
+        // get some weth
+        await weth.transfer(wallet.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(wethDecimals)));
     });
 
+    // eslint-disable-next-line no-undef
     it("get token address", async function () {
-        expect((await yieldSource.token()) == sushi);
+        expect((await yieldSource.token()) == weth);
     });
 
+    // eslint-disable-next-line no-undef
     it("should be able to get underlying balance", async function () {
-        await sushi.connect(wallet).approve(prizePool.address, toWei("100"));
+        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
         let [token] = await prizePool.tokens();
 
         await prizePool.depositTo(wallet.address, toWei("100"), token, wallets[1].address);
-        expect(await sushiBar.balanceOf(prizePool.address)) != 0;
+        expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
     });
 
+    // eslint-disable-next-line no-undef
     it("should be able to withdraw", async function () {
-        await sushi.connect(wallet).approve(prizePool.address, toWei("100"));
+        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
         let [token] = await prizePool.tokens();
 
         await prizePool.depositTo(wallet.address, toWei("100"), token, wallets[1].address);
-        expect(await sushiBar.balanceOf(prizePool.address)) != 0;
+        expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
 
-        const balanceBefore = await sushi.balanceOf(wallet.address);
+        const balanceBefore = await weth.balanceOf(wallet.address);
         await prizePool.withdrawInstantlyFrom(wallet.address, toWei("1"), token, 1000);
-        expect(await sushiBar.balanceOf(wallet.address)) > balanceBefore;
+        expect(await alphaHomora.balanceOf(wallet.address)) > balanceBefore;
     });
 
+    // eslint-disable-next-line no-undef
     it("should be able to withdraw all", async function () {
-        await sushi.connect(wallet).approve(prizePool.address, toWei("100"));
+        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
         let [token] = await prizePool.tokens();
 
-        const initialBalance = await sushi.balanceOf(wallet.address);
+        const initialBalance = await weth.balanceOf(wallet.address);
 
         await prizePool.depositTo(wallet.address, toWei("100"), token, wallets[1].address);
 
-        expect(await sushiBar.balanceOf(prizePool.address)) != 0;
+        expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
 
         hre.network.provider.send("evm_increaseTime", [1000]);
 
@@ -139,6 +146,6 @@ describe("SushiYieldSource", function () {
 
         await prizePool.withdrawInstantlyFrom(wallet.address, toWei("100"), token, 0);
 
-        expect(await sushi.balanceOf(wallet.address)) == initialBalance;
+        expect(await weth.balanceOf(wallet.address)) == initialBalance;
     });
 });
