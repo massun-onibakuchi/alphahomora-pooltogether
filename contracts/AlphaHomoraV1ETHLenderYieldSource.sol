@@ -3,9 +3,12 @@
 /// @dev Alpha Homora source code / doc
 /// https://alphafinancelab.gitbook.io/alpha-homora/protocol-users#eth-lenders
 /// https://alphafinancelab.gitbook.io/alpha-finance-lab/alpha-products/alpha-homora
+
+/* solhint-disable var-name-mixedcase */
 pragma solidity >=0.7.0 <0.8.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "hardhat/console.sol";
 import "./alpha-homora-v1/IBank.sol";
 import "./interface/IYieldSource.sol";
 import "./interface/IWETH.sol";
@@ -23,9 +26,9 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         assert(msg.sender == address(WETH)); // only accept ETH via fallback from the WETH contract
     }
 
-    constructor(address _bankAddr, address _WETHAddr) {
-        bank = IBank(_bankAddr);
-        WETH = IWETH(_WETHAddr);
+    constructor(IBank _bank, IWETH _WETH) {
+        bank = _bank;
+        WETH = _WETH;
     }
 
     function depositToken() external view override returns (address) {
@@ -40,6 +43,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         if (total == 0) {
             return 0;
         }
+        console.log("ibETH balance", balances[addr]);
         uint256 ETHBalance = shares.mul(bank.totalETH()).div(total);
         return balances[addr].mul(ETHBalance).div(total);
     }
@@ -47,7 +51,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     /// @notice Supplies asset tokens to the yield source.
     /// @param amount The amount of asset tokens to be supplied
     function supplyTokenTo(uint256 amount, address to) external override {
-        // Convert WETH to ETH
+        // receive WETH and withdraw ETH
         WETH.transferFrom(msg.sender, address(this), amount);
         WETH.withdraw(amount);
 

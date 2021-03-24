@@ -14,9 +14,7 @@ async function getEvents(contract, tx) {
     return receipt.logs.reduce((parsedEvents, log) => {
         try {
             parsedEvents.push(contract.interface.parseLog(log));
-        } catch (e) {
-            console.log("e :>> ", e);
-        }
+        } catch (e) {}
         return parsedEvents;
     }, []);
 }
@@ -35,6 +33,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", function () {
     let alphaHomora;
     let exchangeWallet;
     let rngServiceMock;
+
     // eslint-disable-next-line no-undef
     before(async function () {
         const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
@@ -56,8 +55,8 @@ describe("AlphaHomoraV1ETHLenderYieldSource", function () {
     beforeEach(async function () {
         wallets = await ethers.getSigners();
         wallet = wallets[0];
-        // setup
 
+        // setup
         yieldSource = await factory.deploy(alphaHomora.address, weth.address, { gasLimit: 9500000 });
         const yieldSourcePrizePoolConfig = {
             yieldSource: yieldSource.address,
@@ -90,7 +89,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", function () {
         );
         let events = await getEvents(poolWithMultipleWinnersBuilder, tx);
         let prizePoolCreatedEvent = events.find(e => e.name == "YieldSourcePrizePoolWithMultipleWinnersCreated");
-
         prizePool = await ethers.getContractAt(yieldSourcePrizePoolABI, prizePoolCreatedEvent.args.prizePool, wallet);
         prizeStrategy = await ethers.getContractAt(
             multipleWinnersABI,
@@ -99,6 +97,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", function () {
         );
 
         // get some weth
+        await weth.deposit(wallet.address);
         await weth.transfer(wallet.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(wethDecimals)));
     });
 

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-///@dev wrapped Etherの実装をsolidity version0.4から0.6に書き換えたもの
+///@dev wrapped Etherの実装をsolidity version0.4から>=0.7 < 8.0に書き換えた
 /// https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
 
 pragma solidity >=0.7.0 <0.8.0;
@@ -41,7 +41,7 @@ contract WETH9 {
     }
 
     function withdraw(uint256 wad) public {
-        require(balanceOf[msg.sender] >= wad);
+        require(balanceOf[msg.sender] >= wad, "weth9/withdraw");
         balanceOf[msg.sender] -= wad;
         msg.sender.transfer(wad);
         emit Withdrawal(msg.sender, wad);
@@ -66,10 +66,10 @@ contract WETH9 {
         address dst,
         uint256 wad
     ) public returns (bool) {
-        require(balanceOf[src] >= wad);
+        require(balanceOf[src] >= wad, "weth9/transfer-from-exceed-balance");
 
         if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
-            require(allowance[src][msg.sender] >= wad,"");
+            require(allowance[src][msg.sender] >= wad, "weth9/transfer-from-exceed-allowance");
             allowance[src][msg.sender] -= wad;
         }
 
