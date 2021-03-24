@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { ethers, waffle } = require("hardhat");
 const hre = require("hardhat");
-const { BigNumber } = require("ethers");
+// const { BigNumber } = require("ethers");
 const { expect } = require("chai");
 const toWei = ethers.utils.parseEther;
 const AddressZero = ethers.constants.AddressZero;
@@ -9,6 +9,7 @@ const AddressZero = ethers.constants.AddressZero;
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const alphaHomoraAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
 const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
+const gasLimitConfig = {gasLimit: 20000000};
 
 async function getEvents(contract, tx) {
     let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -48,43 +49,39 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
 
         // deploy all the pool together.
         const TicketProxyFactory = await ethers.getContractFactory("TicketProxyFactory");
-        const ticketProxyFactory = await TicketProxyFactory.deploy({
-            gasLimit: 20000000,
-        });
+        const ticketProxyFactory = await TicketProxyFactory.deploy(gasLimitConfig);
 
         const ControlledTokenProxyFactory = await ethers.getContractFactory("ControlledTokenProxyFactory");
-        const controlledTokenProxyFactory = await ControlledTokenProxyFactory.deploy({ gasLimit: 20000000 });
+        const controlledTokenProxyFactory = await ControlledTokenProxyFactory.deploy(gasLimitConfig);
 
         const ControlledTokenBuilder = await ethers.getContractFactory("ControlledTokenBuilder");
         const controlledTokenBuilder = await ControlledTokenBuilder.deploy(
             ticketProxyFactory.address,
             controlledTokenProxyFactory.address,
-            { gasLimit: 20000000 },
+            gasLimitConfig,
         );
 
         const MultipleWinnersProxyFactory = await ethers.getContractFactory("MultipleWinnersProxyFactory");
-        const multipleWinnersProxyFactory = await MultipleWinnersProxyFactory.deploy({ gasLimit: 20000000 });
+        const multipleWinnersProxyFactory = await MultipleWinnersProxyFactory.deploy(gasLimitConfig);
 
         const MultipleWinnersBuilder = await ethers.getContractFactory("MultipleWinnersBuilder");
         const multipleWinnersBuilder = await MultipleWinnersBuilder.deploy(
             multipleWinnersProxyFactory.address,
             controlledTokenBuilder.address,
-            { gasLimit: 20000000 },
+            gasLimitConfig,
         );
 
         const StakePrizePoolProxyFactory = await ethers.getContractFactory("StakePrizePoolProxyFactory");
-        const stakePrizePoolProxyFactory = await StakePrizePoolProxyFactory.deploy({
-            gasLimit: 20000000,
-        });
+        const stakePrizePoolProxyFactory = await StakePrizePoolProxyFactory.deploy(gasLimitConfig);
 
         const YieldSourcePrizePoolProxyFactory = await ethers.getContractFactory("YieldSourcePrizePoolProxyFactory");
-        const yieldSourcePrizePoolProxyFactory = await YieldSourcePrizePoolProxyFactory.deploy({ gasLimit: 20000000 });
+        const yieldSourcePrizePoolProxyFactory = await YieldSourcePrizePoolProxyFactory.deploy(gasLimitConfig);
 
         const CompoundPrizePoolProxyFactory = await ethers.getContractFactory("CompoundPrizePoolProxyFactory");
-        const compoundPrizePoolProxyFactory = await CompoundPrizePoolProxyFactory.deploy({ gasLimit: 20000000 });
+        const compoundPrizePoolProxyFactory = await CompoundPrizePoolProxyFactory.deploy(gasLimitConfig);
 
         const Registry = await ethers.getContractFactory("Registry");
-        const registry = await Registry.deploy({ gasLimit: 20000000 });
+        const registry = await Registry.deploy(gasLimitConfig);
 
         const PoolWithMultipleWinnersBuilder = await ethers.getContractFactory("PoolWithMultipleWinnersBuilder");
         poolWithMultipleWinnersBuilder = await PoolWithMultipleWinnersBuilder.deploy(
@@ -119,16 +116,15 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         rngServiceMock = await RGNFactory.deploy({ gasLimit: 9500000 });
 
         let decimals = 9;
-
         const multipleWinnersConfig = {
             proxyAdmin: AddressZero,
             rngService: rngServiceMock.address,
             prizePeriodStart: 0,
             prizePeriodSeconds: 100,
-            ticketName: "sushipass",
-            ticketSymbol: "suship",
-            sponsorshipName: "sushisponso",
-            sponsorshipSymbol: "sushisp",
+            ticketName: "ibETHpass",
+            ticketSymbol: "ibETHp",
+            sponsorshipName: "ibETHsponso",
+            sponsorshipSymbol: "ibETHsp",
             ticketCreditLimitMantissa: toWei("0.1"),
             ticketCreditRateMantissa: toWei("0.1"),
             externalERC20Awards: [],
@@ -152,7 +148,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         await weth.deposit({ value: toWei("100") });
     });
 
-    // eslint-disable-next-line no-undef
     it("get token address", async function () {
         expect(await yieldSource.depositToken()).to.eq(weth.address);
     });
@@ -162,6 +157,12 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         let [controlledToken] = await prizePool.tokens();
         await prizePool.depositTo(wallet.address, toWei("100"), controlledToken, other);
         expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
+    });
+
+    it("supplyTokenTo", async function () {
+        await weth.approve(yieldSource.address, toWei("100"));
+        await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
+        expect(await yieldSource.balanceOfToken(wallet.address)).to.eq(toWei("100"));
     });
 
     it("should be able to withdraw instantly", async function () {
@@ -200,32 +201,4 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         expect(await weth.balanceOf(wallet.address)) == initialBalance;
     });
 
-    it("supplyTokenTo", async function () {
-        await weth.approve(yieldSource.address, toWei("100"));
-        await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
-        expect(await yieldSource.balanceOfToken(wallet.address)).to.eq(toWei("100"));
-    });
-
-    // it("supplyTokenTo and redeemToken", async function () {
-    //   await weth.approve(yieldSource.address, toWei("100"));
-    //   await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
-    //   expect(await yieldSource.balanceOfToken(wallet.address)).to.eq(toWei("100"));
-    //   await yieldSource.redeemToken(toWei("100"));
-    //   expect((await weth.balanceOf(wallet.address)).to.eq(toWei("100")));
-    // });
-
-    // it("prevent funds from being taken by unauthorized", async function () {
-    //   await weth.connect(wallet).approve(yieldSource.address, toWei("100"));
-    //   await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
-
-    //   await expect(
-    //     yieldSource.connect(wallets[1]).redeemToken(toWei("100"))
-    //   ).to.be.revertedWith("SafeMath: subtraction overflow");
-    // });
-
-    // it("is not affected by token transfered by accident", async function () {
-    //   await weth.connect(wallet).transfer(yieldSource.address, toWei("100"));
-
-    //   expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
-    // });
 });
