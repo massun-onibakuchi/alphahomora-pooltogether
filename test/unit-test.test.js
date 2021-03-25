@@ -51,7 +51,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
 
     // eslint-disable-next-line no-undef
     it("get token address", async function () {
-        expect(await yieldSource.depositToken()).to.eq(weth.address);
+        expect(await yieldSource.depositToken()) == weth.address;
     });
 
     it("supplyTokenTo", async function () {
