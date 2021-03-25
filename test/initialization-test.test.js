@@ -22,7 +22,7 @@ async function getEvents(contract, tx) {
 }
 
 // eslint-disable-next-line no-undef
-describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
+describe("AlphaHomoraV1ETHLenderYieldSource initialization", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
     let weth;
@@ -35,7 +35,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     let yieldSourcePrizePoolABI;
     let multipleWinnersABI;
     let rngServiceMock;
-    let initiazeTxPromise;
+    let initializeTxPromise;
     // eslint-disable-next-line no-undef
     before(async function () {
         console.log("wallet.address :>> ", wallet.address);
@@ -129,76 +129,35 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             externalERC20Awards: [],
             numberOfWinners: 1,
         };
-        const tx = await poolWithMultipleWinnersBuilder.createYieldSourceMultipleWinners(
+        initializeTxPromise = await poolWithMultipleWinnersBuilder.createYieldSourceMultipleWinners(
             yieldSourcePrizePoolConfig,
             multipleWinnersConfig,
             decimals,
         );
-        const events = await getEvents(poolWithMultipleWinnersBuilder, tx);
-        const prizePoolCreatedEvent = events.find(e => e.name == "YieldSourcePrizePoolWithMultipleWinnersCreated");
-        if (!prizePoolCreatedEvent.args.prizePool)
-            throw Error("YieldSourcePrizePoolWithMultipleWinnersCreated", prizePoolCreatedEvent.args);
+        const events = await getEvents(poolWithMultipleWinnersBuilder, initializeTxPromise);
 
+        const prizePoolCreatedEvent = events.find(e => e.name == "YieldSourcePrizePoolWithMultipleWinnersCreated");
         prizePool = await ethers.getContractAt(yieldSourcePrizePoolABI, prizePoolCreatedEvent.args.prizePool, wallet);
         prizeStrategy = await ethers.getContractAt(
             multipleWinnersABI,
             prizePoolCreatedEvent.args.prizeStrategy,
             wallet,
         );
-
-        // convert ETH to WETH
-        await weth.deposit({ value: BigNumber.from(100).mul(BigNumber.from(10).pow(18)) });
-        // await weth.deposit({ value: toWei("100") });
     });
 
-    // eslint-disable-next-line no-undef
-    it("get token address", async function () {
-        // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow
-        expect((await yieldSource.depositToken()) == weth);
-    });
+    describe("initialization", async () => {
+        it("emit YieldSourePrizePoolInitialized event", async function () {
+            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow
+            await expect(initializeTxPromise)
+                .to.emit(prizePool, "YieldSourcePrizePoolInitialized")
+                .withArgs(yieldSource.address);
+        });
 
-    it("should return the underlying balance", async function () {
-        await weth.approve(prizePool.address, toWei("100"));
-        const [controlledToken] = await prizePool.tokens();
-        await prizePool.depositTo(wallet.address, toWei("100"), controlledToken, other);
-        console.log("controlledToken :>> ", controlledToken.address);
-        console.log("prizePool.address :>> ", prizePool.address);
-        // expect(await alphaHomora.balanceOf(prizePool.address)).to.equal(0);
-    });
-
-    it("should be able to withdraw instantly", async function () {
-        await weth.approve(prizePool.address, toWei("100"));
-        const [token] = await prizePool.tokens();
-
-        await prizePool.depositTo(wallet.address, toWei("100"), token.address, other);
-        expect(await alphaHomora.balanceOf(prizePool.address)).to.equal(0);
-
-        const balanceBefore = await weth.balanceOf(wallet.address);
-        await prizePool.withdrawInstantlyFrom(
-            wallet.address,
-            toWei("1"),
-            token.address,
-            1000, //The maximum exit fee the caller is willing to pay.
-        );
-        expect(await alphaHomora.balanceOf(wallet.address)).is.greaterThan(balanceBefore);
-    });
-
-    it("should be able to withdraw all", async function () {
-        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
-        const [token] = await prizePool.tokens();
-
-        const initialBalance = await weth.balanceOf(wallet.address);
-
-        await prizePool.depositTo(wallet.address, toWei("100"), token.address, other);
-
-        expect(await alphaHomora.balanceOf(prizePool.address)).to.equal(0);
-
-        await expect(prizePool.withdrawInstantlyFrom(wallet.address, toWei("100"), token.address, 0)).to.be.reverted;
-
-        hre.network.provider.send("evm_increaseTime", [1000]); // wait max_timelock_duration
-
-        await prizePool.withdrawInstantlyFrom(wallet.address, toWei("100"), token.address, 0);
-
-        expect(await weth.balanceOf(wallet.address)).to.equal(initialBalance);
+        it("emit YieldSourcePrizePoolWithMultipleWinnersCreated event", async function () {
+            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow
+            await expect(initializeTxPromise)
+                .to.emit(poolWithMultipleWinnersBuilder, "YieldSourcePrizePoolWithMultipleWinnersCreated")
+                .withArgs(prizePool.address, prizeStrategy.address);
+        });
     });
 });
