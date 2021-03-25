@@ -23,7 +23,8 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     mapping(address => uint256) private balances;
 
     receive() external payable {
-        assert(msg.sender == address(WETH)); // only accept ETH via fallback from the WETH contract
+        console.log("alpha-homora-v1-eth-lender-yield-source:receive-eth");
+        assert(msg.sender == address(WETH)||msg.sender == address(bank)); // only accept ETH via fallback from the WETH contract
     }
 
     constructor(IBank _bank, IWETH _WETH) {

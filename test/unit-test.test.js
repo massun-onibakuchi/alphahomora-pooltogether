@@ -56,14 +56,13 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     it("should be able to get correct ibETH balance", async function () {
         const depositWETHAmount = toWei("100");
         expect(await weth.balanceOf(wallet.address)).to.eq(initialWETHAmount); // check
-                // supply
+        // supply
         await weth.connect(wallet).approve(yieldSource.address, depositWETHAmount);
         await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
 
         const ibETHBalance = await yieldSource.balanceOf(wallet.address); // wallet's ibETH balance
         expect(await bank.balanceOf(yieldSource.address)).eq(ibETHBalance);
     });
-
 
     it("should be able to get correct amount `balanceOfToken`", async function () {
         const depositWETHAmount = toWei("10");
@@ -74,15 +73,10 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
 
         const total = await bank.totalSupply();
         const shares = await bank.balanceOf(yieldSource.address);
-        const ethBalance = shares.mul(bank.totalETH()).div(total);
+        const bankETH = await bank.totalETH();
+        const ethBalance = shares.mul(bankETH).div(total);
         const calculatedBalance = ethBalance.mul(ethBalance).div(total);
-        console.log('total :>> ', total);
-        console.log('shares :>> ', shares);
-        console.log('ethBalance :>> ', ethBalance);
-        console.log('total :calculatedBalance>> ', calculatedBalance);
 
-        // redeem
-        await yieldSource.connect(wallet).redeemToken(depositWETHAmount);
         expect(await yieldSource.balanceOfToken(wallet.address)).not.to.eq(calculatedBalance);
     });
 
@@ -91,23 +85,23 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         // supply
         await weth.connect(wallet).approve(yieldSource.address, depositWETHAmount);
         await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
-        expect(await yieldSource.balanceOfToken(wallet.address)) == toWei("100");
+        expect(await yieldSource.balanceOfToken(wallet.address)) == depositWETHAmount;
         // redeem
         await yieldSource.connect(wallet).redeemToken(depositWETHAmount);
 
         expect(await weth.balanceOf(wallet.address)).to.eq(initialWETHAmount);
     });
 
-        // it("should be able to get correct `balanceOfToken`", async function () {
+    // it("should be able to get correct `balanceOfToken`", async function () {
     //     const depositWETHAmount = toWei("100");
     //     expect(await weth.balanceOf(wallet.address)).to.eq(initialWETHAmount); // check
-        
+
     //     const balanceBefore = await yieldSource.balanceOf(wallet.address);
     //     // supply
     //     await weth.connect(wallet).approve(yieldSource.address, depositWETHAmount);
     //     await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
 
-    //     const balanceAfter = await yieldSource.balanceOfToken(wallet.address); 
+    //     const balanceAfter = await yieldSource.balanceOfToken(wallet.address);
     //     const balanceDiff = balanceAfter.sub(balanceBefore); // wallet's ETH (WETH) balance diff including initial deposit and interest
 
     //     hre.network.provider.send("evm_increaseTime", [1000]);
