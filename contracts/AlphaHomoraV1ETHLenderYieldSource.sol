@@ -23,8 +23,8 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     mapping(address => uint256) private balances;
 
     receive() external payable {
-        console.log("alpha-homora-v1-eth-lender-yield-source:receive-eth");
-        assert(msg.sender == address(WETH)||msg.sender == address(bank)); // only accept ETH via fallback from the WETH contract
+        // only accept ETH via fallback from the WETH contract
+        assert(msg.sender == address(WETH) || msg.sender == address(bank)); 
     }
 
     constructor(IBank _bank, IWETH _WETH) {
@@ -48,7 +48,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         if (total == 0) {
             return 0;
         }
-        console.log("addr's ibETH balance", balances[addr]);
+        // console.log("addr's ibETH balance", balances[addr]);
         uint256 ethBalance = shares.mul(bank.totalETH()).div(total);
         return balances[addr].mul(ethBalance).div(total);
     }
@@ -73,11 +73,11 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     }
 
     /// @notice Redeems asset tokens from the yield source.
-    /// @param redeemAmount The amount of yield-bearing tokens to be redeemed
+    /// @param redeemAmount The amount of yield-bearing tokens to be redeemed (ie. ether amount)
     /// @return The actual amount of tokens that were redeemed.
     function redeemToken(uint256 redeemAmount) external override returns (uint256) {
         uint256 totalShares = bank.totalSupply();
-        uint256 bankETHBalance = bank.totalETH();
+        uint256 bankETHBalance = bank.totalETH(); // WETH.balanceOf(address(bank))
         uint256 requiredShares = redeemAmount.mul(totalShares).div(bankETHBalance);
 
         // balance before
@@ -90,14 +90,17 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         WETH.deposit{ value: address(this).balance }();
 
         // balance after
-        uint256 bankAfterBalance = bank.balanceOf(address(this));
-        uint256 WETHAfterBalance = WETH.balanceOf(address(this));
+        uint256 bankBalanceAfter = bank.balanceOf(address(this));
+        uint256 wethBalanceAfter = WETH.balanceOf(address(this));
 
-        uint256 bankBalanceDiff = bankBlanceBefore.sub(bankAfterBalance);
-        uint256 WETHBalanceDiff = WETHAfterBalance.sub(wethBlanceBefore);
+        uint256 bankBalanceDiff = bankBlanceBefore.sub(bankBalanceAfter); // diff should be greater than 0
+        uint256 wethBalanceDiff = wethBalanceAfter.sub(wethBlanceBefore);// diff should be greater than 0
+
+        console.log("balances[%s] before :>>",msg.sender, balances[msg.sender]);
         balances[msg.sender] = balances[msg.sender].sub(bankBalanceDiff);
+        console.log("balances[%s] after :>>",msg.sender, balances[msg.sender]);
 
-        require(WETH.transfer(msg.sender, WETHBalanceDiff), "WETH_TRANSFER_FAIL");
-        return WETHBalanceDiff;
+        require(WETH.transfer(msg.sender, wethBalanceDiff), "WETH_TRANSFER_FAIL");
+        return wethBalanceDiff;
     }
 }

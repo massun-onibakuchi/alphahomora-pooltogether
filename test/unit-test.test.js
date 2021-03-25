@@ -13,7 +13,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
     const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
-    const exchangeWallet = await provider.getSigner(exchangeWalletAddress);
+    const exchangeWallet = ethers.getSigner(exchangeWalletAddress);
     const initialWETHAmount = toWei("1000");
 
     let weth;
@@ -21,7 +21,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     let factory;
     let yieldSource;
     let wethFactory;
-
     // eslint-disable-next-line no-undef
     before(async function () {
         // mainnet forking impersonate `exchangeWalletAddress`
@@ -88,39 +87,39 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         expect(await yieldSource.balanceOfToken(wallet.address)) == depositWETHAmount;
         // redeem
         await yieldSource.connect(wallet).redeemToken(depositWETHAmount);
-
-        expect(await weth.balanceOf(wallet.address)).to.eq(initialWETHAmount);
+        expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
     });
 
-    // it("should be able to get correct `balanceOfToken`", async function () {
-    //     const depositWETHAmount = toWei("100");
-    //     expect(await weth.balanceOf(wallet.address)).to.eq(initialWETHAmount); // check
+    it("prevent funds from being taken by unauthorized", async function () {
+        await weth.connect(wallet).approve(yieldSource.address, toWei("100"));
+        await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
 
-    //     const balanceBefore = await yieldSource.balanceOf(wallet.address);
-    //     // supply
-    //     await weth.connect(wallet).approve(yieldSource.address, depositWETHAmount);
-    //     await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
+        await expect(yieldSource.connect(other).redeemToken(toWei("100"))).to.be.revertedWith(
+            "SafeMath: subtraction overflow",
+        );
+    });
 
-    //     const balanceAfter = await yieldSource.balanceOfToken(wallet.address);
-    //     const balanceDiff = balanceAfter.sub(balanceBefore); // wallet's ETH (WETH) balance diff including initial deposit and interest
+    it("redeemToken ", async function () {
+        const depositWETHAmount = toWei("100");
+        const approvedWETHAmount = toWei("1000");
+        await weth.transfer(other.address, depositWETHAmount);
+        await weth.connect(other).approve(yieldSource.amount, approvedWETHAmount);
+        await weth.connect(wallet).approve(yieldSource.address, approvedWETHAmount);
+        await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
+        await yieldSource.connect(other).supplyTokenTo(depositWETHAmount, other.address);
+        expect(await yieldSource.connect(other).redeemToken(depositWETHAmount.add(BigNumber.from(5)))).to.be.reverted(
+            "",
+        );
+    });
 
-    //     hre.network.provider.send("evm_increaseTime", [1000]);
+    it("is not affected by token transfered by accident", async function () {
+        await weth.connect(wallet).transfer(yieldSource.address, toWei("100"));
+        expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
+    });
 
-    //     expect(await yieldSource.balanceOfToken(wallet.address)).eq(balanceDiff);
-    // });
-
-    // it("prevent funds from being taken by unauthorized", async function () {
-    //   await weth.connect(wallet).approve(yieldSource.address, toWei("100"));
-    //   await yieldSource.supplyTokenTo(toWei("100"), wallet.address);
-
-    //   await expect(
-    //     yieldSource.connect(wallets[1]).redeemToken(toWei("100"))
-    //   ).to.be.revertedWith("SafeMath: subtraction overflow");
-    // });
-
-    // it("is not affected by token transfered by accident", async function () {
-    //   await weth.connect(wallet).transfer(yieldSource.address, toWei("100"));
-
-    //   expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
+    // it("can not receive eth except `bank` contract or `WETH`contract ", async function () {
+    //     // expect(await bank.connect(wallet).receive({value:toWei("10")})).to.throw();
+    //     const request = await wallet.signTransaction({ value: toWei("1"), to: yieldSource.address})
+    //     expect(await wallet.sendTransaction(request)).to.throw();
     // });
 });
