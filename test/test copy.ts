@@ -38,7 +38,7 @@ describe("SushiYieldSource", function () {
       method: "hardhat_impersonateAccount",
       params: [exchangeWalletAddress],
     });
-    exchangeWallet = waffle.provider.getSigner(exchangeWalletAddress);
+    const exchangeWallet = waffle.provider.getSigner(exchangeWalletAddress);
     sushi = await hre.ethers.getVerifiedContractAt(
       "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
       exchangeWallet

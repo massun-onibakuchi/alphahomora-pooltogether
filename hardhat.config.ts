@@ -5,6 +5,8 @@ import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
 import 'hardhat-deploy';
 import "hardhat-etherscan-abi";
+import 'hardhat-dependency-compiler';
+
 
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
@@ -43,14 +45,28 @@ const config: HardhatUserConfig = {
     },
     // rinkeby: {
     // url: "https://rinkeby.infura.io/v3/" + PROJECT_ID,
-    // accounts: [privateKey1, privateKey2]
+    // // accounts: [privateKey1, privateKey2]
     // accounts: {
     //   mnemonic:"",
     //   path:"",
     //   initialIndex:0,
     //   count:10
     // }
-    //https://hardhat.org/config/#hd-wallet-config
+    // https://hardhat.org/config/#hd-wallet-config
+  },
+  dependencyCompiler: {
+    paths: [
+      "@pooltogether/pooltogether-contracts/contracts/builders/PoolWithMultipleWinnersBuilder.sol",
+      "@pooltogether/pooltogether-contracts/contracts/registry/Registry.sol",
+      "@pooltogether/pooltogether-contracts/contracts/prize-pool/compound/CompoundPrizePoolProxyFactory.sol",
+      "@pooltogether/pooltogether-contracts/contracts/prize-pool/yield-source/YieldSourcePrizePoolProxyFactory.sol",
+      "@pooltogether/pooltogether-contracts/contracts/prize-pool/stake/StakePrizePoolProxyFactory.sol",
+      "@pooltogether/pooltogether-contracts/contracts/builders/MultipleWinnersBuilder.sol",
+      "@pooltogether/pooltogether-contracts/contracts/prize-strategy/multiple-winners/MultipleWinnersProxyFactory.sol",
+      "@pooltogether/pooltogether-contracts/contracts/builders/ControlledTokenBuilder.sol",
+      "@pooltogether/pooltogether-contracts/contracts/token/ControlledTokenProxyFactory.sol",
+      "@pooltogether/pooltogether-contracts/contracts/token/TicketProxyFactory.sol",
+    ]
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY
@@ -62,6 +78,15 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
       {
         version: "0.7.6",
         settings: {
