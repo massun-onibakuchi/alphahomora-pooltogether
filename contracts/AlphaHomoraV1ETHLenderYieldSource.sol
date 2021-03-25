@@ -20,7 +20,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     IWETH public immutable WETH;
 
     ///@dev ibETH token balances
-    mapping(address => uint256) public balances;
+    mapping(address => uint256) private balances;
 
     receive() external payable {
         assert(msg.sender == address(WETH)); // only accept ETH via fallback from the WETH contract
@@ -29,6 +29,10 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     constructor(IBank _bank, IWETH _WETH) {
         bank = _bank;
         WETH = _WETH;
+    }
+
+    function balanceOf(address addr) public view returns (uint256) {
+        return balances[addr];
     }
 
     function depositToken() external view override returns (address) {
@@ -43,9 +47,9 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         if (total == 0) {
             return 0;
         }
-        console.log("ibETH balance", balances[addr]);
-        uint256 ETHBalance = shares.mul(bank.totalETH()).div(total);
-        return balances[addr].mul(ETHBalance).div(total);
+        console.log("addr's ibETH balance", balances[addr]);
+        uint256 ethBalance = shares.mul(bank.totalETH()).div(total);
+        return balances[addr].mul(ethBalance).div(total);
     }
 
     /// @notice Supplies asset tokens to the yield source.
@@ -77,7 +81,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
 
         // balance before
         uint256 bankBlanceBefore = bank.balanceOf(address(this));
-        uint256 WETHBlanceBefore = WETH.balanceOf(address(this));
+        uint256 wethBlanceBefore = WETH.balanceOf(address(this));
 
         // receive ETH
         bank.withdraw(requiredShares);
@@ -89,7 +93,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         uint256 WETHAfterBalance = WETH.balanceOf(address(this));
 
         uint256 bankBalanceDiff = bankBlanceBefore.sub(bankAfterBalance);
-        uint256 WETHBalanceDiff = WETHAfterBalance.sub(WETHBlanceBefore);
+        uint256 WETHBalanceDiff = WETHAfterBalance.sub(wethBlanceBefore);
         balances[msg.sender] = balances[msg.sender].sub(bankBalanceDiff);
 
         require(WETH.transfer(msg.sender, WETHBalanceDiff), "WETH_TRANSFER_FAIL");

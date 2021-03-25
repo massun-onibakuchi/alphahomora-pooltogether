@@ -136,7 +136,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         );
         const events = await getEvents(poolWithMultipleWinnersBuilder, tx);
         const prizePoolCreatedEvent = events.find(e => e.name == "YieldSourcePrizePoolWithMultipleWinnersCreated");
-        if (typeof  prizePoolCreatedEvent.args.prizePool != "string")
+        if (typeof prizePoolCreatedEvent.args.prizePool != "string")
             throw Error("YieldSourcePrizePoolWithMultipleWinnersCreated", prizePoolCreatedEvent.args);
 
         prizePool = await ethers.getContractAt(yieldSourcePrizePoolABI, prizePoolCreatedEvent.args.prizePool, wallet);
@@ -171,7 +171,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         const [tokenAddress] = await prizePool.tokens();
 
         await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
-        expect(await alphaHomora.balanceOf(prizePool.address)) !=0;
+        expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
 
         const balanceBefore = await weth.balanceOf(wallet.address);
         await prizePool.withdrawInstantlyFrom(
