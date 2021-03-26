@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 /// @title Custom yield source intergration Alpha Homora v1 ETHLender
 /// @dev Alpha Homora source code / doc
+/// https://github.com/AlphaFinanceLab/alphahomora/blob/master/contracts/5/Bank.sol
 /// https://alphafinancelab.gitbook.io/alpha-homora/protocol-users#eth-lenders
 /// https://alphafinancelab.gitbook.io/alpha-finance-lab/alpha-products/alpha-homora
 
@@ -16,14 +17,17 @@ import "./interface/IWETH.sol";
 contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     using SafeMath for uint256;
 
+    /// @dev ref to Alpha Homora V1 Bank contract
     IBank public immutable bank;
+
+    /// @dev ref to WrappedETH9 contract.
     IWETH public immutable WETH;
 
     ///@dev ibETH token balances
     mapping(address => uint256) private balances;
 
     receive() external payable {
-        // only accept ETH via fallback from the WETH contract
+        // only accept ETH via fallback from the WETH contract or withdraw from the bank contract /
         assert(msg.sender == address(WETH) || msg.sender == address(bank));
     }
 
@@ -49,12 +53,16 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
             return 0;
         }
         // console.log("addr's ibETH balance", balances[addr]);
+
+        // ratio = shares / totalShares
+        // ratio * totalETH
         uint256 ethBalance = shares.mul(bank.totalETH()).div(total);
+        // ethBalance * addr's Shares / totalShares
         return balances[addr].mul(ethBalance).div(total);
     }
 
     /// @notice Supplies asset tokens to the yield source.
-    /// @param amount The amount of asset tokens to be supplied
+    /// @param amount The amount of asset tokens to be supplied (ie. WETH amount)
     function supplyTokenTo(uint256 amount, address to) external override {
         // receive WETH and withdraw ETH
         WETH.transferFrom(msg.sender, address(this), amount);
@@ -63,8 +71,6 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         // ibETH balance before
         uint256 balanceBefore = bank.balanceOf(address(this));
 
-        // console.log("address(this) balance", address(this).balance);
-        // console.log("msg.sender", msg.sender);
         // Deposit ETH and receive ibETH
         bank.deposit{ value: address(this).balance }();
 
@@ -80,6 +86,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     function redeemToken(uint256 redeemAmount) external override returns (uint256) {
         uint256 totalShares = bank.totalSupply();
         uint256 bankETHBalance = bank.totalETH(); // WETH.balanceOf(address(bank))
+        // ibETH shares = redeemedETHAmount * totalibETHSupply / bankETHBalance
         uint256 requiredShares = redeemAmount.mul(totalShares).div(bankETHBalance);
 
         // balance before
