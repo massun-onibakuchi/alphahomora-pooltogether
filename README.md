@@ -1,12 +1,35 @@
-# PoolTogether Integraion
+# AlphaHomora PoolTogether
+[日本語](./docs/README_JA.md)
+
+Alpha Finance and PoolTogether Integration.  
+
+PoolTogether is Prize Savings Protocol Ethereum smart contracts.  
+For an overview of the concepts and API please see the [documentation](https://docs.pooltogether.com/)  
 
 ## Concept 
-Users deposit their DAI in a contract called `BToken`, receive bToken (bDAI) in a 1:1 exchange, and express their Yes/No vote (bet) on the same prediction market as Augur in the BToken contract. (You don't buy shares in Augur).
-After that, bToken is deposited into poolTogether, and in the background, bToken is converted into DAI and deposited into Compound, which is lent out.
-After the Augur prediction market is finalized, the winners of the bets share the interest from Compound. The loser of the bet receives only the first bToken deposited, and can exchange it for DAI on a 1:1 basis with the BToken contract.
-I want tot use Augur as an oracle in the sense that I need to know the final outcome. 
+The poolTogether protocol has several pre-built yield source integrations sush as Compound. Now, PoolTogether offers a no-loss lottery where DAI, USDC and UNI are deposited into the Compound. But, perhaps because of the low lending rate of ETH, we do not see any no-loss lotteries where ETH is deposited.
 
-## Installation
+Alpha Homora is the first leveraged yield farming and leveraged liquidity providing product in DeFi.
 
-## ToDo
-- テスト
+By integrating Alpha Homora as a yield source, a higher ETH lending rate is obtained.
+
+[Learn more in the Earn on ETH section.](https://alphafinancelab.gitbook.io/alpha-homora/#earn-on-eth)
+
+[Alpha Homora GitHub](https://github.com/AlphaFinanceLab/alphahomora)
+
+## Setup
+To install dependencies,run  
+`yarn`  
+
+You will needs to enviroment variables to run the tests.
+Create a `.env` file in the root directory of your project.
+``` 
+ETHERSCAN_API_KEY=
+ALCHEMY_API_KEY=
+```
+You will get the first one from [Etherscan](https://etherscan.io/).
+You will get the second one from [Alchemy](https://dashboard.alchemyapi.io/).
+
+
+## Test
+`yarn test`
