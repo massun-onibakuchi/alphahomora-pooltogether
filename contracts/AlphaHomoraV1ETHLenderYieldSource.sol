@@ -49,7 +49,10 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
             return 0;
         }
         // console.log("addr's ibETH balance", balances[addr]);
+        // ratio = shares / totalShares
+        // ratio * totalETH
         uint256 ethBalance = shares.mul(bank.totalETH()).div(total);
+        // ethBalance * addr's Shares / totalShares
         return balances[addr].mul(ethBalance).div(total);
     }
 
@@ -80,6 +83,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
     function redeemToken(uint256 redeemAmount) external override returns (uint256) {
         uint256 totalShares = bank.totalSupply();
         uint256 bankETHBalance = bank.totalETH(); // WETH.balanceOf(address(bank))
+        // ibETH shares = redeemedETHAmount * totalibETHSupply / bankETHBalance
         uint256 requiredShares = redeemAmount.mul(totalShares).div(bankETHBalance);
 
         // balance before

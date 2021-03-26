@@ -101,18 +101,4 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         await weth.transfer(yieldSource.address, toWei("100"));
         expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
     });
-
-    //Error
-    // it("can not redeem more than the amo ", async function () {
-    //     const depositWETHAmount = toWei("10");
-    //     const approvedWETHAmount = toWei("100");
-    //     await weth.connect(other).deposit({value: depositWETHAmount});
-    //     await weth.connect(other).approve(yieldSource.amount, approvedWETHAmount);
-    //     await weth.approve(yieldSource.address, approvedWETHAmount);
-    //     await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
-    //     await yieldSource.connect(other).supplyTokenTo(depositWETHAmount, other.address);
-    // expect(await yieldSource.connect(other).redeemToken(depositWETHAmount.add(toWei("10")))).to.be.reverted(
-    //     "",
-    // );
-    // });
 });

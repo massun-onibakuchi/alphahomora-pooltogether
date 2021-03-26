@@ -8,11 +8,11 @@ PoolTogether is Prize Savings Protocol Ethereum smart contracts.
 For an overview of the concepts and API please see the [documentation](https://docs.pooltogether.com/)  
 
 ## Concept 
-The poolTogether protocol has several pre-built yield source integrations sush as Compound. Now, PoolTogether offers a no-loss lottery where DAI, USDC and UNI are deposited into the Compound. But, perhaps because of the low lending rate of ETH, we do not see any no-loss lotteries where ETH is deposited.
+The poolTogether protocol has several pre-built yield source integrations sush as Compound. Now, PoolTogether offers a no-loss lottery where DAI, USDC and UNI are deposited into the Compound. But, perhaps because of the low lending rate of ETH, we do not see any no-loss lotteries where ETH is deposited. We can see Compound market overivew [here](https://compound.finance/markets).
 
 Alpha Homora is the first leveraged yield farming and leveraged liquidity providing product in DeFi.
 
-By integrating Alpha Homora V1 as a yield source, a higher ETH lending rate is obtained.
+By integrating Alpha Homora V1 as a yield source, a higher ETH lending rate is obtained.We can see APY  [here](https://homora.alphafinance.io/earn)
 
 [Learn more in the Earn on ETH section.](https://alphafinancelab.gitbook.io/alpha-homora/#earn-on-eth)
 
