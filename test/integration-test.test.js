@@ -28,7 +28,6 @@ async function getEvents(contract, tx) {
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
-    const exchangeWallet = provider.getSigner(exchangeWalletAddress);
     let weth;
     let bank;
     let YieldSourceFactory;
@@ -88,11 +87,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             multipleWinnersBuilder.address,
             { gasLimit: 9500000 },
         );
-        // // mainnet forking / impersonate account
-        // await hre.network.provider.request({
-        //     method: "hardhat_impersonateAccount",
-        //     params: [exchangeWalletAddress],
-        // });
         YieldSourceFactory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource", other);
 
         // creat contract instance without manually downloading ABI

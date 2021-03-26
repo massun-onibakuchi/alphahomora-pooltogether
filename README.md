@@ -31,6 +31,9 @@ ALCHEMY_API_KEY=
 You will get the first one from [Etherscan](https://etherscan.io/).
 You will get the second one from [Alchemy](https://dashboard.alchemyapi.io/).
 
+## Compile
+To compile, run   
+`yarn hardhat compile`
 
 ## Test
 `yarn test`

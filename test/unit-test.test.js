@@ -13,7 +13,6 @@ const overrides = { gasLimit: 9500000 };
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
-    const exchangeWallet = ethers.getSigner(exchangeWalletAddress);
     const initialWETHAmount = toWei("1000");
 
     let weth;
@@ -41,9 +40,9 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     beforeEach(async function () {
         weth = await wethFactory.deploy(overrides);
         yieldSource = await factory.deploy(bank.address, weth.address, overrides);
-        // `exchangeWallet` deposits ETH
+        // deposits ETH
         await weth.deposit({ value: initialWETHAmount });
-        // `exchangeWallet` tansfer WETH to `wallet`. Eventually, `Wallet` has initial ETH + `wei` WETH
+        // tansfer WETH to `wallet`. Eventually, `Wallet` has initial ETH + `wei` WETH
         await weth.transfer(wallet.address, initialWETHAmount);
     });
 
