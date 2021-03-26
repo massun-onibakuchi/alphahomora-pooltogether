@@ -10,7 +10,7 @@ import 'hardhat-dependency-compiler';
 
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-const BLOCK_NUMBER = process.env.BLOCK_NUMBER;
+const BLOCK_NUMBER = process.env.BLOCK_NUMBER || "12068742";
 const PROJECT_ID = "";
 
 // This is a sample Hardhat task. To learn how to create your own go to
