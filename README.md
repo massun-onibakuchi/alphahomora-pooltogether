@@ -1,5 +1,5 @@
 # AlphaHomora PoolTogether
-[日本語](/docs/README_JA.md)
+[日本語](docs/README_JA.md)
 
 Alpha Finance and PoolTogether Integration.  
 
