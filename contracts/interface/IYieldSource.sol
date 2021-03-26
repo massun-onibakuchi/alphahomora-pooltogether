@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 /// @title Custom yield source interface
+/// @dev 
+///  - All deposits are denominated in the depositToken() ERC20.
+///  - The balanceOfToken(address) function is similar to the Aave aToken, in that the balance must always increase.
 /// @author https://github.com/pooltogether/yield-source-interface
 pragma solidity >=0.4.0 <0.8.0;
 
