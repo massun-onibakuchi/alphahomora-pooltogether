@@ -1,5 +1,6 @@
 # AlphaHomora PoolTogether
-[日本語](docs/ja/README_JA.md)
+[日本語](docs/ja/README_JA.md)  
+[Overview](docs/en/overview.md)  
 
 Alpha Finance and PoolTogether Integration.  
 
@@ -11,11 +12,11 @@ The poolTogether protocol has several pre-built yield source integrations sush a
 
 Alpha Homora is the first leveraged yield farming and leveraged liquidity providing product in DeFi.
 
-By integrating Alpha Homora as a yield source, a higher ETH lending rate is obtained.
+By integrating Alpha Homora V1 as a yield source, a higher ETH lending rate is obtained.
 
 [Learn more in the Earn on ETH section.](https://alphafinancelab.gitbook.io/alpha-homora/#earn-on-eth)
 
-[Alpha Homora GitHub](https://github.com/AlphaFinanceLab/alphahomora)
+[Alpha Homora V1 GitHub](https://github.com/AlphaFinanceLab/alphahomora)
 
 ## Setup
 To install dependencies,run  
