@@ -24,10 +24,10 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     // eslint-disable-next-line no-undef
     before(async function () {
         // mainnet forking impersonate `exchangeWalletAddress`
-        // await hre.network.provider.request({
-        //     method: "hardhat_impersonateAccount",
-        //     params: [exchangeWalletAddress],
-        // });
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [exchangeWalletAddress],
+        });
 
         bank = await ethers.getVerifiedContractAt(bankAddress); // creat contract instance without manually downloading ABI
         wethFactory = await ethers.getContractFactory("WETH9", wallet);

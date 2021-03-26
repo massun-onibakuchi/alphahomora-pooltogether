@@ -63,6 +63,8 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         // ibETH balance before
         uint256 balanceBefore = bank.balanceOf(address(this));
 
+        console.log("address(this) balance", address(this).balance);
+        console.log("msg.sender", msg.sender);
         // Deposit ETH and receive ibETH
         bank.deposit{ value: address(this).balance }();
 

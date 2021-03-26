@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { ethers, waffle } = require("hardhat");
 const hre = require("hardhat");
+const chai = require("chai");
 const { expect } = require("chai");
 const { BigNumber } = ethers;
 const toWei = ethers.utils.parseEther;
 const AddressZero = ethers.constants.AddressZero;
+
+chai.use(require("chai-bignumber")());
 
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const alphaHomoraAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
@@ -25,8 +28,9 @@ async function getEvents(contract, tx) {
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
+    const exchangeWallet = provider.getSigner(exchangeWalletAddress);
     let weth;
-    let alphaHomora;
+    let bank;
     let YieldSourceFactory;
     let yieldSource;
     let poolWithMultipleWinnersBuilder;
@@ -35,7 +39,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     let yieldSourcePrizePoolABI;
     let multipleWinnersABI;
     let rngServiceMock;
-    let initiazeTxPromise;
     // eslint-disable-next-line no-undef
     before(async function () {
         console.log("wallet.address :>> ", wallet.address);
@@ -85,17 +88,16 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             multipleWinnersBuilder.address,
             { gasLimit: 9500000 },
         );
-        // mainnet forking / impersonate account
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [exchangeWalletAddress],
-        });
-        const exchangeWallet = provider.getSigner(exchangeWalletAddress);
+        // // mainnet forking / impersonate account
+        // await hre.network.provider.request({
+        //     method: "hardhat_impersonateAccount",
+        //     params: [exchangeWalletAddress],
+        // });
+        YieldSourceFactory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource", other);
 
-        YieldSourceFactory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource", exchangeWallet);
-
-        alphaHomora = await ethers.getVerifiedContractAt(alphaHomoraAddress); // creat contract instance without manually downloading ABI
-        weth = await ethers.getVerifiedContractAt(wethAddress, exchangeWallet);
+        // creat contract instance without manually downloading ABI
+        bank = await ethers.getVerifiedContractAt(alphaHomoraAddress);
+        weth = await ethers.getVerifiedContractAt(wethAddress, other);
 
         yieldSourcePrizePoolABI = (await hre.artifacts.readArtifact("YieldSourcePrizePool")).abi;
         multipleWinnersABI = (await hre.artifacts.readArtifact("MultipleWinners")).abi;
@@ -103,7 +105,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
 
     // eslint-disable-next-line no-undef
     beforeEach(async function () {
-        yieldSource = await YieldSourceFactory.deploy(alphaHomora.address, weth.address, {
+        yieldSource = await YieldSourceFactory.deploy(bank.address, weth.address, {
             gasLimit: 9500000,
         });
         const yieldSourcePrizePoolConfig = {
@@ -147,8 +149,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         );
 
         // convert ETH to WETH
-        await weth.deposit({ value: BigNumber.from(100).mul(BigNumber.from(10).pow(18)) });
-        // await weth.deposit({ value: toWei("100") });
+        await weth.connect(wallet).deposit({ value: BigNumber.from(100).mul(BigNumber.from(10).pow(18)) });
     });
 
     // eslint-disable-next-line no-undef
@@ -158,20 +159,19 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     });
 
     it("should return the underlying balance", async function () {
-        await weth.approve(prizePool.address, toWei("100"));
+        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
         const [tokenAddress] = await prizePool.tokens();
-        console.log("prizePool.address :>> ", prizePool.address);
-        console.log("tokenAddress :>> ", tokenAddress);
         await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
-        // expect(await alphaHomora.balanceOf(prizePool.address)) !=0;
+        const balance = await bank.balanceOf(yieldSource.address);
+        expect(balance).to.be.bignumber.greaterThan(0);
     });
 
     it("should be able to withdraw instantly", async function () {
-        await weth.approve(prizePool.address, toWei("100"));
+        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
         const [tokenAddress] = await prizePool.tokens();
 
         await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
-        expect(await alphaHomora.balanceOf(prizePool.address)) != 0;
+        expect(await bank.balanceOf(prizePool.address)) != 0;
 
         const balanceBefore = await weth.balanceOf(wallet.address);
         await prizePool.withdrawInstantlyFrom(
@@ -180,25 +180,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             tokenAddress,
             1000, //The maximum exit fee the caller is willing to pay.
         );
-        expect(await alphaHomora.balanceOf(wallet.address)).is.greaterThan(balanceBefore);
-    });
-
-    it("should be able to withdraw all", async function () {
-        await weth.connect(wallet).approve(prizePool.address, toWei("100"));
-        const [tokenAddress] = await prizePool.tokens();
-
-        const initialBalance = await weth.balanceOf(wallet.address);
-
-        await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
-
-        expect(await alphaHomora.balanceOf(prizePool.address)).not.to.equal(0);
-
-        await expect(prizePool.withdrawInstantlyFrom(wallet.address, toWei("100"), tokenAddress, 0)).to.be.reverted;
-
-        hre.network.provider.send("evm_increaseTime", [1000]); // wait max_timelock_duration
-
-        await prizePool.withdrawInstantlyFrom(wallet.address, toWei("100"), tokenAddress, 0);
-
-        expect(await weth.balanceOf(wallet.address)).to.equal(initialBalance);
+        const balanceAfter = await weth.balanceOf(wallet.address);
+        expect(balanceAfter).to.be.bignumber.greaterThan(balanceBefore);
     });
 });

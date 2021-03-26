@@ -9,6 +9,7 @@
         "@openzeppelin/contracts": "^3.4.1",
         "@pooltogether/pooltogether-contracts": "^3.3.5",
         "@typechain/ethers-v5": "^6.0.4",
+        "chai-bignumber": "^3.0.0",
         "dotenv": "^8.2.0",
         "ethereum-waffle": "^3.3.0",
         "ethers": "^5.0.32",
