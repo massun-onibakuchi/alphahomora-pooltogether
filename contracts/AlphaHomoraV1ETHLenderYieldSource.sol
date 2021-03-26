@@ -24,7 +24,7 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
 
     receive() external payable {
         // only accept ETH via fallback from the WETH contract
-        assert(msg.sender == address(WETH) || msg.sender == address(bank)); 
+        assert(msg.sender == address(WETH) || msg.sender == address(bank));
     }
 
     constructor(IBank _bank, IWETH _WETH) {
@@ -94,11 +94,8 @@ contract AlphaHomoraV1ETHLenderYieldSource is IYieldSource {
         uint256 wethBalanceAfter = WETH.balanceOf(address(this));
 
         uint256 bankBalanceDiff = bankBlanceBefore.sub(bankBalanceAfter); // diff should be greater than 0
-        uint256 wethBalanceDiff = wethBalanceAfter.sub(wethBlanceBefore);// diff should be greater than 0
-
-        console.log("balances[%s] before :>>",msg.sender, balances[msg.sender]);
+        uint256 wethBalanceDiff = wethBalanceAfter.sub(wethBlanceBefore); // diff should be greater than 0
         balances[msg.sender] = balances[msg.sender].sub(bankBalanceDiff);
-        console.log("balances[%s] after :>>",msg.sender, balances[msg.sender]);
 
         require(WETH.transfer(msg.sender, wethBalanceDiff), "WETH_TRANSFER_FAIL");
         return wethBalanceDiff;

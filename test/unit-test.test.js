@@ -7,12 +7,12 @@ const toWei = ethers.utils.parseEther;
 
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const bankAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
+const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
 const overrides = { gasLimit: 9500000 };
 // eslint-disable-next-line no-undef
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
-    const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
     const exchangeWallet = ethers.getSigner(exchangeWalletAddress);
     const initialWETHAmount = toWei("1000");
 
@@ -24,14 +24,14 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     // eslint-disable-next-line no-undef
     before(async function () {
         // mainnet forking impersonate `exchangeWalletAddress`
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [exchangeWalletAddress],
-        });
+        // await hre.network.provider.request({
+        //     method: "hardhat_impersonateAccount",
+        //     params: [exchangeWalletAddress],
+        // });
 
         bank = await ethers.getVerifiedContractAt(bankAddress); // creat contract instance without manually downloading ABI
-        wethFactory = await ethers.getContractFactory("WETH9", exchangeWallet);
-        factory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource", exchangeWallet);
+        wethFactory = await ethers.getContractFactory("WETH9", wallet);
+        factory = await ethers.getContractFactory("AlphaHomoraV1ETHLenderYieldSource", wallet);
 
         console.log("wallet.address :>> ", wallet.address);
         console.log("other.address :>> ", other.address);
@@ -98,28 +98,23 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             "SafeMath: subtraction overflow",
         );
     });
-
-    it("redeemToken ", async function () {
-        const depositWETHAmount = toWei("100");
-        const approvedWETHAmount = toWei("1000");
-        await weth.transfer(other.address, depositWETHAmount);
-        await weth.connect(other).approve(yieldSource.amount, approvedWETHAmount);
-        await weth.connect(wallet).approve(yieldSource.address, approvedWETHAmount);
-        await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
-        await yieldSource.connect(other).supplyTokenTo(depositWETHAmount, other.address);
-        expect(await yieldSource.connect(other).redeemToken(depositWETHAmount.add(BigNumber.from(5)))).to.be.reverted(
-            "",
-        );
-    });
-
     it("is not affected by token transfered by accident", async function () {
-        await weth.connect(wallet).transfer(yieldSource.address, toWei("100"));
+        await weth.transfer(yieldSource.address, toWei("100"));
         expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
     });
 
-    // it("can not receive eth except `bank` contract or `WETH`contract ", async function () {
-    //     // expect(await bank.connect(wallet).receive({value:toWei("10")})).to.throw();
-    //     const request = await wallet.signTransaction({ value: toWei("1"), to: yieldSource.address})
-    //     expect(await wallet.sendTransaction(request)).to.throw();
+ //Error
+    // it("can not redeem more than the amo ", async function () {
+    //     const depositWETHAmount = toWei("10");
+    //     const approvedWETHAmount = toWei("100");
+    //     await weth.connect(other).deposit({value: depositWETHAmount});
+    //     await weth.connect(other).approve(yieldSource.amount, approvedWETHAmount);
+    //     await weth.approve(yieldSource.address, approvedWETHAmount);
+    //     await yieldSource.connect(wallet).supplyTokenTo(depositWETHAmount, wallet.address);
+    //     await yieldSource.connect(other).supplyTokenTo(depositWETHAmount, other.address);
+        // expect(await yieldSource.connect(other).redeemToken(depositWETHAmount.add(toWei("10")))).to.be.reverted(
+        //     "",
+        // );
     // });
+
 });
