@@ -1,17 +1,18 @@
 {
     "env": {
         "node": true,
-        "es6": true
+        "es6": true,
+        "mocha": true
     },
     "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
+        "eslint:recommended"
+        // "plugin:@typescript-eslint/recommended"
         // "plugin:prettier/recommended",
         // "prettier/@typescript-eslint"
     ],
-    "parser": "@typescript-eslint/parser",
+    // "parser": "@typescript-eslint/parser",
     "plugins": [
-        "@typescript-eslint/eslint-plugin"
+        // "@typescript-eslint/eslint-plugin"
     ],
     "globals": {
         "Atomics": "readonly",

@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { ethers, waffle } = require("hardhat");
 const hre = require("hardhat");
-const chai = require("chai");
-const { expect } = require("chai");
+const { expect, assert, use } = require("chai");
 const { BigNumber } = ethers;
 const toWei = ethers.utils.parseEther;
 const AddressZero = ethers.constants.AddressZero;
 
-chai.use(require("chai-bignumber")());
+use(require("chai-bignumber")());
 
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const alphaHomoraAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
@@ -24,7 +22,6 @@ async function getEvents(contract, tx) {
     }, []);
 }
 
-// eslint-disable-next-line no-undef
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
@@ -157,7 +154,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         const [tokenAddress] = await prizePool.tokens();
         await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
         const balance = await bank.balanceOf(yieldSource.address);
-        expect(balance).to.be.bignumber.greaterThan(0);
+        assert.isTrue(balance.gt(toWei("0")));
     });
 
     it("should be able to withdraw instantly", async function () {
@@ -165,8 +162,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         const [tokenAddress] = await prizePool.tokens();
 
         await prizePool.depositTo(wallet.address, toWei("100"), tokenAddress, other.address);
-        expect(await bank.balanceOf(prizePool.address)) != 0;
-
         const balanceBefore = await weth.balanceOf(wallet.address);
         await prizePool.withdrawInstantlyFrom(
             wallet.address,
@@ -175,6 +170,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
             1000, //The maximum exit fee the caller is willing to pay.
         );
         const balanceAfter = await weth.balanceOf(wallet.address);
-        expect(balanceAfter).to.be.bignumber.greaterThan(balanceBefore);
+        assert.isTrue(balanceAfter.gt(balanceBefore));
     });
 });

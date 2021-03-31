@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { ethers, waffle } = require("hardhat");
 const hre = require("hardhat");
+const { ethers, waffle } = require("hardhat");
 const { BigNumber } = require("ethers");
-const { expect } = require("chai");
+const { expect, use } = require("chai");
 const toWei = ethers.utils.parseEther;
+
+use(require("chai-bignumber")());
 
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const bankAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
 const exchangeWalletAddress = "0xD551234Ae421e3BCBA99A0Da6d736074f22192FF";
 const overrides = { gasLimit: 9500000 };
 
-// eslint-disable-next-line no-undef
 describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     const provider = waffle.provider;
     const [wallet, other] = provider.getWallets();
@@ -87,7 +87,7 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
         expect(await yieldSource.balanceOfToken(wallet.address)) == depositWETHAmount;
         // redeem
         await yieldSource.connect(wallet).redeemToken(depositWETHAmount);
-        expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
+        expect(await yieldSource.balanceOfToken(wallet.address)).to.eq(toWei("0"));
     });
 
     it("prevent funds from being taken by unauthorized", async function () {
@@ -100,6 +100,6 @@ describe("AlphaHomoraV1ETHLenderYieldSource", async function () {
     });
     it("is not affected by token transfered by accident", async function () {
         await weth.transfer(yieldSource.address, toWei("100"));
-        expect(await yieldSource.balanceOfToken(wallet.address)) == 0;
+        expect(await yieldSource.balanceOfToken(wallet.address)).to.eq(toWei("0"));
     });
 });

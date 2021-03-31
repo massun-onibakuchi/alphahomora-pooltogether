@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { ethers, waffle } = require("hardhat");
 const hre = require("hardhat");
-const { expect } = require("chai");
+const { expect, use } = require("chai");
 const { BigNumber } = ethers;
 const toWei = ethers.utils.parseEther;
 const AddressZero = ethers.constants.AddressZero;
+
+use(require("chai-bignumber")());
 
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 const alphaHomoraAddress = "0x67B66C99D3Eb37Fa76Aa3Ed1ff33E8e39F0b9c7A";
@@ -147,14 +148,14 @@ describe("AlphaHomoraV1ETHLenderYieldSource initialization", async function () {
 
     describe("initialization", async () => {
         it("emit YieldSourePrizePoolInitialized event", async function () {
-            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow
+            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow :upperCase/lowerCase
             await expect(initializeTxPromise)
                 .to.emit(prizePool, "YieldSourcePrizePoolInitialized")
                 .withArgs(yieldSource.address);
         });
 
         it("emit YieldSourcePrizePoolWithMultipleWinnersCreated event", async function () {
-            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow
+            // expect(await yieldSource.depositToken()).to.eq(weth.address); // this won't work somehow:upperCase/lowerCase
             await expect(initializeTxPromise)
                 .to.emit(poolWithMultipleWinnersBuilder, "YieldSourcePrizePoolWithMultipleWinnersCreated")
                 .withArgs(prizePool.address, prizeStrategy.address);
